@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
             // view, so that the animated color, and the bouncing balls, get redisplayed on
             // every frame of the animation.
            ValueAnimator colorAnim = ObjectAnimator.ofInt(this, "backgroundColor", RED, BLUE);
-            colorAnim.setDuration(300);
+            colorAnim.setDuration(3000);
             colorAnim.setEvaluator(new ArgbEvaluator());
             colorAnim.setRepeatCount(ValueAnimator.INFINITE);
             colorAnim.setRepeatMode(ValueAnimator.REVERSE);
@@ -86,12 +86,17 @@ public class MainActivity extends Activity {
             ShapeHolder newBall = addBall(event.getX(), event.getY());
 //            invalidate();
             // Bouncing animation with squash and stretch
-            float startY = newBall.getY();
+            bounceBall(newBall); 
+            
+            return true;
+        }
+        
+		private void bounceBall(final ShapeHolder newBall) {
+			float startY = newBall.getY();
             float endY = getHeight() - 50f;
             float h = (float)getHeight();
-            float eventY = event.getY();
-            int duration = (int)(500 * ((h - eventY)/h));
-            System.out.println(duration + " " + startY + " " + endY);
+            int duration = (int)(500 * ((h - startY)/h));
+//            System.out.println(duration + " " + startY + " " + endY);
 
             ObjectAnimator bounceAnim = ObjectAnimator.ofFloat(newBall, "y", startY, endY);
             bounceAnim.setDuration(duration);
@@ -140,6 +145,12 @@ public class MainActivity extends Activity {
                     startY);
             bounceBackAnim.setDuration(duration);
             bounceBackAnim.setInterpolator(new DecelerateInterpolator()); 
+            bounceBackAnim.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    bounceBall(newBall);
+                }
+            });
             // Sequence the down/squash&stretch/up animations 
             AnimatorSet bouncer = new AnimatorSet();
      //       bouncer.play(bounceAnim);
@@ -149,23 +160,25 @@ public class MainActivity extends Activity {
             bouncer.play(squashAnim1).with(stretchAnim1);
             bouncer.play(squashAnim1).with(stretchAnim2);
             bouncer.play(bounceBackAnim).after(stretchAnim2);
+            
+            bouncer.start();
             // Fading animation - remove the ball when the animation is done
-            ValueAnimator fadeAnim = ObjectAnimator.ofFloat(newBall, "alpha", 1f, 0f);
+/*            ValueAnimator fadeAnim = ObjectAnimator.ofFloat(newBall, "alpha", 1f, 0f);
             fadeAnim.setDuration(250);
             fadeAnim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    balls.remove(((ObjectAnimator)animation).getTarget());
+                    balls.remove(((ObjectAnimator)animation).getTarget());; 
                 }
             });
+ 
             // Sequence the two animations to play one after the other
             AnimatorSet animatorSet = new AnimatorSet();
             animatorSet.play(bouncer).before(fadeAnim);
             // Start the animation
-            animatorSet.start(); 
-            
-            return true;
-        }
+            animatorSet.start(); */
+		}
+		
         private ShapeHolder addBall(float x, float y) {
             OvalShape circle = new OvalShape();
             circle.resize(50f, 50f);
